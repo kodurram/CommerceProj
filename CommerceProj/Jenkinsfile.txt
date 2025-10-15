@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/<your-username>/jenkins-python-ci.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'python3 -m venv venv'
+                sh '. venv/bin/activate && pip install -r requirements.txt'
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                sh '. venv/bin/activate && flake8 . --max-line-length=88'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh '. venv/bin/activate && pytest --junitxml=reports/results.xml'
+            }
+        }
+    }
+
+    post {
+        always {
+            junit 'reports/results.xml'
+        }
+    }
+}
